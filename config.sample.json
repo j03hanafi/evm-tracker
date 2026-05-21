@@ -1,0 +1,21 @@
+{
+  "rpc_ws_url": "wss://eth-mainnet.g.alchemy.com/v2/YOUR_KEY",
+  "telegram_bot_token": "YOUR_BOT_TOKEN",
+  "telegram_chat_id": "YOUR_CHAT_ID",
+  "wallets": [
+    {
+      "address": "0xYOUR_WALLET_ADDRESS",
+      "track_incoming": true,
+      "track_outgoing": true,
+      "track_native": true,
+      "native_min_amount": "1000000000000000",
+      "track_all_tokens": false,
+      "global_token_min_amount": "0",
+      "tokens": {
+        "0xdAC17F958D2ee523a2206206994597C13D831ec7": {
+          "min_amount": "1000000"
+        }
+      }
+    }
+  ]
+}
