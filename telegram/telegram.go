@@ -21,8 +21,9 @@ func NewClient(token, chatID string) *Client {
 }
 
 func (c *Client) Send(message string) error {
+	fmt.Println("Sending Telegram message...")
 	endpoint := fmt.Sprintf("%s/bot%s/sendMessage", c.ApiURL, c.Token)
-	
+
 	resp, err := http.PostForm(endpoint, url.Values{
 		"chat_id":    {c.ChatID},
 		"text":       {message},
