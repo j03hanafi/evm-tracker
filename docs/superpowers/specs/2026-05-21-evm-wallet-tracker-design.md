@@ -34,15 +34,17 @@ The application will be built using a modular Go architecture:
 - Upon receiving a new block header, or when catching up from the saved state:
   - Fetches the full block by number.
   - Processes all transactions and receipts in the block.
-  - Checks Native ETH transfers: if sender/receiver matches a configured wallet, and `track_native` is true for that direction, and amount >= `native_min_amount`.
-  - Checks ERC20 `Transfer` logs: if sender/receiver matches a configured wallet, and direction is tracked.
+  - **Native ETH Internal Transactions**: Standard block data does not include internal value transfers (ETH sent via smart contract execution). The app will use `debug_traceBlockByNumber` (or similar tracing API) to extract internal call traces, ensuring no native ETH transfers via smart contracts are missed.
+  - Checks Native ETH transfers (from both standard Txs and internal traces): if sender/receiver matches a configured wallet, and `track_native` is true for that direction, and amount >= `native_min_amount`.
+  - **ERC20 Internal Transactions**: Unlike native ETH, ERC20 token transfers executed internally by smart contracts *always* emit standard `Transfer` events. These are naturally captured in the standard transaction receipt logs, so no special tracing is needed for them.
+  - Checks ERC20 `Transfer` logs (capturing both direct and internal smart contract transfers): if sender/receiver matches a configured wallet, and direction is tracked.
     - If `track_all_tokens` is true, check amount >= `global_token_min_amount`.
     - If `track_all_tokens` is false, check if the contract address is in the wallet's `tokens` map, and amount >= the specific token's `min_amount`.
 - Emits detected valid transactions to a Go channel for processing by the notification service.
 
 ### 4. Notifications (`telegram` package)
 - Receives detected transactions.
-- Formats the transaction details into a readable Markdown/HTML message (including Type (In/Out), Tx Hash, Value, Token Symbol/Name (if possible, or address), Sender, Receiver).
+- Formats the transaction details into a readable Markdown/HTML message (including Type (In/Out), Tx Hash, Value, Token Symbol/Name (if possible, or address), Sender, Receiver, and a flag if it was an internal transfer).
 - Sends the message using the Telegram Bot API via HTTP POST requests.
 
 ### 5. Application Core (`main` package)
