@@ -84,6 +84,12 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	chainID, err := ethClient.ChainID(ctx)
+	if err != nil {
+		log.Fatalf("get chainID: %v", err)
+	}
+	signer := types.LatestSignerForChainID(chainID)
+
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
@@ -118,6 +124,9 @@ func main() {
 			}
 
 			for b := lastBlock + 1; b <= currentBlock; b++ {
+				if ctx.Err() != nil {
+					break
+				}
 				log.Printf("Processing block %d", b)
 
 				// Standard Transactions
@@ -129,7 +138,7 @@ func main() {
 
 				for _, tx := range block.Transactions() {
 					// Need to get sender (from address) which requires parsing the signature/chainID
-					from, err := types.Sender(types.LatestSignerForChainID(tx.ChainId()), tx)
+					from, err := types.Sender(signer, tx)
 					if err != nil {
 						continue // fallback or ignore if we can't get sender
 					}
